@@ -7,7 +7,6 @@ export const RESTART_ON_REMOUNT = '@@saga-injector/restart-on-remount';
 export const DAEMON = '@@saga-injector/daemon';
 export const ONCE_TILL_UNMOUNT = '@@saga-injector/once-till-unmount';
 
-
 export const palette = {
   accent: '#B940D0',
   primary: '#5395E9',
@@ -35,16 +34,18 @@ export const palette = {
 
 export const unit = 12;
 
-export const shadow = css`
+export const shadow = css `
   box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
 `;
-export const bigShadow = css`
+export const bigShadow = css `
   box-shadow: 0 4px 14px 0 rgba(0,0,0,0.05);
 `;
-export const transition = css`
+export const transition = css `
   transition: 0.3s ease;
 `;
-export const StyledLink = styled(Link)`
+
+export const StyledLink = styled(Link)
+`
     text-decoration: none;
     color: ${palette.accent};
     &:hover {
@@ -52,7 +53,7 @@ export const StyledLink = styled(Link)`
       text-decoration: underline;
     }
 `;
-export const StyledA = styled.a`
+export const StyledA = styled.a `
     text-decoration: none;
     color: ${palette.accent};
     &:hover {
@@ -61,10 +62,10 @@ export const StyledA = styled.a`
     }
 `;
 
-export const rounded = css`
+export const rounded = css `
   border-radius: 8px;
 `;
-export const block = css`
+export const block = css `
   background-color: ${palette.white};
   transition: 0.3s ease;
   ${rounded}

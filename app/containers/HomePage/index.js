@@ -1,14 +1,3 @@
-/*
- * HomePage
- *
- * This is the first thing users see of our App, at the '/' route
- *
- * NOTE: while this component should technically be a stateless functional
- * component (SFC), hot reloading does not currently support SFCs. If hot
- * reloading is not a necessity for you then you can refactor it and remove
- * the linting exception.
- */
-
 import React from 'react';
 // import { FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
@@ -28,16 +17,17 @@ import { palette } from '../../utils/constants';
 
 function importAll(r) {
   const images = {};
-  r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });// eslint-disable-line
+  r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); }); // eslint-disable-line
   return images;
 }
+
 function removeA(arr) {
-  let what,// eslint-disable-line
-    a = arguments,// eslint-disable-line
+  let what, // eslint-disable-line
+    a = arguments, // eslint-disable-line
     L = a.length,
     ax;
   while (L > 1 && arr.length) {
-    what = a[--L];// eslint-disable-line
+    what = a[--L]; // eslint-disable-line
     while ((ax = arr.indexOf(what)) !== -1) { // eslint-disable-line
       arr.splice(ax, 1);
     }
@@ -73,7 +63,7 @@ const hairstyle11 = importAll(require.context('../../images/Прически/А�
 const hairstyle12 = importAll(require.context('../../images/Прически/Бунтарь', false, /\.(png|jpe?g|svg)$/));
 
 
-const Checkbox = styled.div`
+const Checkbox = styled.div `
   display: inline-block;
   margin: 0 10px;
   position: relative;
@@ -253,16 +243,16 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     tip: 'Выберите 3 архетипа из 12',
     title: '***',
   };
-  componentDidUpdate(prevProps, prevState) {
-    console.log(prevState);
-    console.log(this.state);
+  // componentDidUpdate(prevProps, prevState) {
+  //   // console.log(prevState);
+  //   // console.log(this.state);
 
-    // if (this.state.stage !== prevState.stage) {
-    //   if (this.state.stage === 1) {
-    //     this.slider.slickGoTo(0);
-    //   }
-    // }
-  }
+  //   // if (this.state.stage !== prevState.stage) {
+  //   //   if (this.state.stage === 1) {
+  //   //     this.slider.slickGoTo(0);
+  //   //   }
+  //   // }
+  // }
   settings = {
     dots: true,
     infinite: true,
