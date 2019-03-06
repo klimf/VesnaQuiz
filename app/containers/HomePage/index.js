@@ -389,9 +389,9 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
           tip: 'Выберите 1 архетип из 3',
           allowedNext: false,
         });
-      } else if (selArch.length < 1) {
+      } else {
         this.setState({
-          selArch: [...selArch, slideIndex].sort(),
+          selArch: [slideIndex],
           tip: `Выбран ${this.state.archetypes[slideIndex].name}`,
           allowedNext: true,
         });
