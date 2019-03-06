@@ -442,14 +442,23 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
       if (selItems[menuSwitchName][selSwitchIndex].length < 3) {
         selItems[menuSwitchName][selSwitchIndex].push(itemIndex + 1);
         const allowedNext = selItems[menuSwitchName].every((el) => el.length === 3);
+
         console.log({ allowedNext, selItems });
         this.setState({ selItems, allowedNext, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
+        setTimeout(() => {
+          if (selItems[menuSwitchName][selSwitchIndex].length === 3) {
+            if (!allowedNext) {
+              this.changeMenuSwitch(menuSwitchName, menuSwitchArray, menuSwitchArray.filter((el) => !el.active)[0]);
+            }
+          }
+        }, 500);
       }
     } else {
       selItems[menuSwitchName][selSwitchIndex] = selItems[menuSwitchName][selSwitchIndex].filter((item) => item !== itemIndex + 1);
       console.log(selItems);
       this.setState({ selItems, allowedNext: false, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
     }
+
     console.log(selItems[menuSwitchName][selSwitchIndex]);
   }
   // selHairstyle = (archPreIndex, itemIndex) => {
