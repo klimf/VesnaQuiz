@@ -25,6 +25,7 @@ import placeholder from '../../images/placeholder.png';
 import { media, hideOn } from '../../utils/helpers';
 import Icon from '../../components/Icon';
 import { palette } from '../../utils/constants';
+import MenuSwitch from '../../components/MenuSwitch';
 
 function importAll(r) {
   const images = {};
@@ -121,16 +122,14 @@ const Item = styled(Cell)`
     width: 32px;
     height: 32px;
     border-radius: 16px;
-    border: 3px solid ${palette.white};
-    box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.40), 0 2px 4px 0 rgba(0,0,0,0.40);
     &>div {
       display: none;
     }
   }
   ${(props) => props.selected && `
-    border: 4px solid ${palette.accent};
+    border: 4px solid ${props.color};
     & .checkbox {
-      background: ${palette.gradientAccent};
+      
       &>div {
         display: block;
       }
@@ -247,11 +246,22 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     selColor: -1,
     selArch: [],
     selItem: [[], [], [], [], [], [], [], [], [], [], [], []],
-    countItems: 0,
+    selItems: {
+      dislikeSwitch: [[], []],
+      likeSwitch: [[], []],
+    },
     allowedNext: true,
     // archetypes: [],
     tip: 'Выберите 3 архетипа из 12',
     title: '***',
+    dislikeSwitch: [
+      { active: true, value: 'Выбор ПЛОХИХ окрасок' },
+      { active: false, value: 'Выбор ПЛОХИХ стрижек' },
+    ],
+    likeSwitch: [
+      { active: true, value: 'Выбор ХОРОШИХ окрасок' },
+      { active: false, value: 'Выбор ХОРОШИХ стрижек' },
+    ],
   };
   componentDidUpdate(prevProps, prevState) {
     console.log(prevState);
@@ -287,6 +297,9 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     //   label = `${this.state.selArch.includes(this.state.slideIndex) ? 'Убрать' : 'Добавить'} «${data.archetypes[this.state.slideIndex].name}»`;
     // }
     label = `${this.state.selArch.includes(this.state.slideIndex) ? 'Убрать' : 'Добавить'} «${data.archetypes[this.state.slideIndex].name}»`;
+    if (this.state.stage === 1) {
+      label = (this.state.selArch.length > 0) ? 'Далее' : `Выбрать ${this.state.archetypes[this.state.slideIndex].name}`;
+    }
     return label;
   }
   next = () => {
@@ -300,29 +313,41 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     // console.log(this.state);
   }
   nextStage = () => {
-    // const selArch = this.state.selArch;
+    const selArch = this.state.selArch;
     if (this.state.allowedNext) {
       if (this.state.stage === 0) {
         this.setState({
           stage: 1,
-          tip: 'Выберите 3 понравившихся картинки',
+          tip: 'Выберите 1 архетип из 3',
           allowedNext: false,
           slideIndex: 0,
-        // archetypes: [data.archetypes[selArch[0]], data.archetypes[selArch[1]], data.archetypes[selArch[2]]],
+          archetypes: [data.archetypes[selArch[0]], data.archetypes[selArch[1]], data.archetypes[selArch[2]]],
+          selArch: [],
         });
-      }
-      if (this.state.stage === 1) {
+      } else if (this.state.stage === 1) {
         this.setState({
           stage: 2,
+          tip: 'Выберите плохие варианты',
+          allowedNext: false,
+          slideIndex: 0,
+        });
+      } else if (this.state.stage === 2) {
+        this.setState({
+          stage: 3,
+          tip: 'Выберите хорошие варианты',
+          allowedNext: false,
+        // archetypes: [data.archetypes[selArch[0]], data.archetypes[selArch[1]], data.archetypes[selArch[2]]],
+        });
+      } else if (this.state.stage === 3) {
+        this.setState({
+          stage: 4,
           tip: 'Выберите цвет настроения',
           title: 'Цвет настороения',
           allowedNext: false,
-        // archetypes: [data.archetypes[selArch[0]], data.archetypes[selArch[1]], data.archetypes[selArch[2]]],
         });
-      }
-      if (this.state.stage === 2) {
+      } else if (this.state.stage === 4) {
         this.setState({
-          stage: 3,
+          stage: 5,
           tip: '',
           title: 'Вот ваш образ!',
           allowedNext: false,
@@ -351,6 +376,22 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
           tip: `Выбрано: ${selArch.length + 1}/3`,
         });
       }
+    } else if (this.state.stage === 1) {
+      const selArch = this.state.selArch;
+      const slideIndex = this.state.slideIndex;
+      if (selArch.includes(slideIndex)) {
+        this.setState({
+          selArch: [...removeA(selArch, slideIndex)],
+          tip: 'Выберите 1 архетип из 3',
+          allowedNext: false,
+        });
+      } else if (selArch.length < 1) {
+        this.setState({
+          selArch: [...selArch, slideIndex].sort(),
+          tip: `Выбран ${this.state.archetypes[slideIndex].name}`,
+          allowedNext: true,
+        });
+      }
     }
   }
   isSelItem = (itemIndex) => {
@@ -364,7 +405,7 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     return false;
   }
   selItem = (archIndex, itemIndex) => {
-    if (this.state.stage === 1) {
+    if (this.state.stage === 2) {
       const selItem = this.state.selItem;
       const countItems = this.state.countItems;
       // const slideIndex = this.state.slideIndex;
@@ -394,39 +435,56 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
       }
     }
   }
-  selHairstyle = (archPreIndex, itemIndex) => {
-    if (this.state.stage === 1) {
-      const selItem = this.state.selItem;
-      const countItems = this.state.countItems;
-      // const slideIndex = this.state.slideIndex;
-      const archIndex = this.state.selArch[archPreIndex];
-    // console.log([...selArch]);
-    // console.log(slideIndex);
-    // console.log(selArch.includes(slideIndex));
-      if (selItem[archIndex] && selItem[archIndex].includes(itemIndex)) {
-        this.setState({ allowedNext: false });
-        selItem[archIndex] = [...removeA(selItem[archIndex], itemIndex)];
-        this.setState({
-          selItem,
-          countItems: countItems - 1,
-          tip: `Выбрано: ${countItems - 1}/3`,
-        });
-      } else if (countItems < 3) {
-        if ((countItems + 1) >= 3) {
-          this.setState({ allowedNext: true });
-        }
-        selItem[archIndex] = [...selItem[archIndex], itemIndex];
-      // const filteredArch = selArch.filter((value) => value === slideIndex);
-        this.setState({
-          selItem,
-          countItems: countItems + 1,
-          tip: `Выбрано: ${countItems + 1}/3`,
-        });
+  selHairstyle = (menuSwitchName, menuSwitchArray, itemIndex) => {
+    const selItems = { ...this.state.selItems };
+    const selSwitchIndex = menuSwitchArray.findIndex((el) => el.active);
+    if (!selItems[menuSwitchName][selSwitchIndex].find((item) => item === itemIndex + 1)) {
+      if (selItems[menuSwitchName][selSwitchIndex].length < 3) {
+        selItems[menuSwitchName][selSwitchIndex].push(itemIndex + 1);
+        const allowedNext = selItems[menuSwitchName].every((el) => el.length === 3);
+        console.log({ allowedNext, selItems });
+        this.setState({ selItems, allowedNext, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
       }
+    } else {
+      selItems[menuSwitchName][selSwitchIndex] = selItems[menuSwitchName][selSwitchIndex].filter((item) => item !== itemIndex + 1);
+      console.log(selItems);
+      this.setState({ selItems, allowedNext: false, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
     }
+    console.log(selItems[menuSwitchName][selSwitchIndex]);
   }
+  // selHairstyle = (archPreIndex, itemIndex) => {
+  //   if (this.state.stage === 2) {
+  //     const selItem = this.state.selItem;
+  //     const countItems = this.state.countItems;
+  //     // const slideIndex = this.state.slideIndex;
+  //     const archIndex = this.state.selArch[archPreIndex];
+  //   // console.log([...selArch]);
+  //   // console.log(slideIndex);
+  //   // console.log(selArch.includes(slideIndex));
+  //     if (selItem[archIndex] && selItem[archIndex].includes(itemIndex)) {
+  //       this.setState({ allowedNext: false });
+  //       selItem[archIndex] = [...removeA(selItem[archIndex], itemIndex)];
+  //       this.setState({
+  //         selItem,
+  //         countItems: countItems - 1,
+  //         tip: `Выбрано: ${countItems - 1}/3`,
+  //       });
+  //     } else if (countItems < 3) {
+  //       if ((countItems + 1) >= 3) {
+  //         this.setState({ allowedNext: true });
+  //       }
+  //       selItem[archIndex] = [...selItem[archIndex], itemIndex];
+  //     // const filteredArch = selArch.filter((value) => value === slideIndex);
+  //       this.setState({
+  //         selItem,
+  //         countItems: countItems + 1,
+  //         tip: `Выбрано: ${countItems + 1}/3`,
+  //       });
+  //     }
+  //   }
+  // }
   selColorItem = (selColor) => {
-    if (this.state.stage === 2) {
+    if (this.state.stage === 4) {
       this.setState({
         selColor,
         allowedNext: true,
@@ -436,38 +494,76 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
   logState = () => {
     // console.log(this.state);
   }
+  changeMenuSwitch = (switchName, switchArray, activeElement) => {
+    if (!activeElement.active) {
+      const newSwitchArray = [...switchArray];
+      newSwitchArray.find((elem) => elem.active).active = false;
+      newSwitchArray.find((elem) => elem === activeElement).active = true;
+      let newTip = '';
+      if (this.state.selItems[switchName][newSwitchArray.findIndex((el) => el.active)].length === 0) {
+        newTip = `Выберите ${this.state.stage === 2 ? 'плохие' : 'хорошие'} варианты`;
+      } else {
+        newTip = `Выбрано ${this.state.selItems[switchName][newSwitchArray.findIndex((el) => el.active)].length}/3`;
+      }
+      this.setState({ [switchName]: newSwitchArray, tip: newTip });
+    }
+  }
   render() {
     return (
       <div>
         <Header onClick={this.logState}>
+          {/* it doesn't work inside <Content> */}
+          {(this.state.stage === 2) &&
+          <MenuSwitch switch={this.state.dislikeSwitch}>
+            {this.state.dislikeSwitch.map((elem) =>
+              // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+              (<div
+                key={elem.value}
+                className={elem.active ? 'case active' : 'case'}
+                onClick={() => this.changeMenuSwitch('dislikeSwitch', this.state.dislikeSwitch, elem)}
+              >{elem.value}</div>))}
+            <div className="runner"></div>
+          </MenuSwitch>}
+          {(this.state.stage === 3) &&
+          <MenuSwitch switch={this.state.likeSwitch}>
+            {this.state.likeSwitch.map((elem) =>
+              // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+              (<div
+                key={elem.value}
+                className={elem.active ? 'case active' : 'case'}
+                onClick={() => this.changeMenuSwitch('likeSwitch', this.state.likeSwitch, elem)}
+              >{elem.value}</div>))}
+            <div className="runner"></div>
+          </MenuSwitch>}
           <Content flex>
-            <Icon noAll={this.state.stage > 1} name="arrowL" padding="20px" color={palette.gray} onClick={this.prev} />
-            {(this.state.stage === 0) && <StyledDiv onClick={this.selArch}>
+            <Icon noAll={this.state.stage >= 2} name="arrowL" padding="20px" color={palette.gray} onClick={this.prev} />
+            {(this.state.stage === 0 || this.state.stage === 1) && <StyledDiv onClick={this.selArch}>
               <Checkbox selected={this.state.selArch.includes(this.state.slideIndex)}><Icon name="check" size={22} margin="4px 5px" color={palette.white} /></Checkbox>
               <Text center inline type="title">{
-                (this.state.stage === 0 || this.state.stage === 1) &&
-                data.archetypes[(this.state.stage === 1 && this.state.selArch[this.state.slideIndex]) ? this.state.selArch[this.state.slideIndex] : this.state.slideIndex].name
+                (this.state.stage === 0 || this.state.stage === 2) &&
+                data.archetypes[(this.state.stage === 2 && this.state.selArch[this.state.slideIndex]) ? this.state.selArch[this.state.slideIndex] : this.state.slideIndex].name
                 }
-                {(this.state.stage === 2 || this.state.stage === 3) &&
+                {(this.state.stage === 4 || this.state.stage === 5) &&
                 this.state.title
                 }
+                {(this.state.stage === 1) && this.state.archetypes[this.state.slideIndex].name}
               </Text>
             </StyledDiv>}
-            {(this.state.stage !== 0) &&
+            {(this.state.stage !== 0 && this.state.stage !== 1 && this.state.stage !== 2) &&
             <Text center inline type="title" onClick={this.selArch}>{
-              (this.state.stage === 0 || this.state.stage === 1) &&
-              data.archetypes[(this.state.stage === 1 && this.state.selArch[this.state.slideIndex]) ? this.state.selArch[this.state.slideIndex] : this.state.slideIndex].name
+              (this.state.stage === 0 || this.state.stage === 2) &&
+              data.archetypes[(this.state.stage === 2 && this.state.selArch[this.state.slideIndex]) ? this.state.selArch[this.state.slideIndex] : this.state.slideIndex].name
               }
-              {(this.state.stage === 2 || this.state.stage === 3) &&
+              {(this.state.stage === 4 || this.state.stage === 5) &&
               this.state.title
               }
             </Text>}
-            <Icon noAll={this.state.stage > 1} name="arrowR" padding="20px" color={palette.gray} onClick={this.next} />
+            <Icon noAll={this.state.stage >= 2} name="arrowR" padding="20px" color={palette.gray} onClick={this.next} />
           </Content>
         </Header>
         <Space size={6} />
         {(this.state.stage === 0) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
-          {this.state.archetypes.filter((item, index) => (this.state.stage === 1 ? this.state.selArch.includes(index) : true)).map((archetype, archetypeIndex) => (
+          {this.state.archetypes.filter((item, index) => (this.state.stage === 2 ? this.state.selArch.includes(index) : true)).map((archetype, archetypeIndex) => (
             <Slide key={archetypeIndex.toString()}>
               <Content>
                 {/* <SlideHeader>
@@ -494,6 +590,26 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
             </Slide>
             ))}
         </Slider>}
+        {(this.state.stage === 1) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
+          {this.state.archetypes.map((archetype, archetypeIndex) => (
+            <Slide key={archetypeIndex.toString()}>
+              <Content>
+                <StyledGrid flow="row dense" columns={75} minRowHeight="0">
+                  {archetype.items.map((item, archetypeItemIndex) => (
+                    <Item
+                      key={archetypeItemIndex.toString()}
+                      width={item.w}
+                      height={item.h}
+                      src={item.src}
+                    >
+                      <img src={item.src} alt={archetypeItemIndex} />
+                    </Item>
+                  ))}
+                </StyledGrid>
+              </Content>
+            </Slide>
+           ))}
+        </Slider>}
         {/* {(this.state.stage === 1) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
           {this.state.archetypes.filter((item, index) => (this.state.stage === 1 ? this.state.selArch.includes(index) : true)).map((archetype, archetypeIndex) => (
             <Slide key={archetypeIndex.toString()}>
@@ -518,26 +634,27 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
             </Slide>
             ))}
         </Slider>} */}
-        {(this.state.stage === 1) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
-          {this.state.archetypes.filter((item, index) => (this.state.stage === 1 ? this.state.selArch.includes(index) : true)).map((archetype, archetypeIndex) => (
+        {(this.state.stage === 2) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
+          {this.state.selArch.map((archetype, archetypeIndex) => (
             <Slide key={archetypeIndex.toString()}>
               <Content>
                 {/* <SlideHeader>
                   <h1>{archetype.name}</h1>
                 </SlideHeader> */}
                 <StyledGrid flow="row dense" columns={6} minRowHeight="0">
-                  {Object.keys(archetype.hairstyles).map((key, hairstyleIndex) => (
+                  {Object.keys(this.state.archetypes[archetype].hairstyles).map((key, hairstyleIndex) => (
                     // <Item key={index.toString()} width={item.w} height={item.h} src={item.src} />
                     <Item
                       key={key.toString()}
                       width={1}
                       height={1}
-                      onClick={() => this.selItem(this.state.selArch[archetypeIndex], hairstyleIndex)}
+                      onClick={() => this.selHairstyle('dislikeSwitch', this.state.dislikeSwitch, hairstyleIndex)}
                       noAction={this.state.stage === 0}
-                      selected={this.state.selItem[this.state.selArch[archetypeIndex]] && this.state.selItem[this.state.selArch[archetypeIndex]].includes(hairstyleIndex)}
+                      selected={this.state.selItems.dislikeSwitch[this.state.dislikeSwitch.findIndex((el) => el.active)].find((index) => index - 1 === hairstyleIndex)}
+                      color="red"
                     >
-                      <img src={archetype.hairstyles[`h${(hairstyleIndex + 1)}.jpg`]} alt={key} />
-                      {/* <div className="checkbox"><Icon name="check" size={22} margin="0 2px" color={palette.white} /></div> */}
+                      <img src={this.state.archetypes[archetype].hairstyles[`h${(hairstyleIndex + 1)}.jpg`]} alt={key} />
+                      <div className="checkbox"><Icon name="dislike" size={40} margin="0 2px" color={palette.white} /></div>
                     </Item>
                   ))}
                 </StyledGrid>
@@ -545,7 +662,35 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
             </Slide>
             ))}
         </Slider>}
-        {(this.state.stage === 2) &&
+        {(this.state.stage === 3) && <Slider ref={(slider) => (this.slider = slider)} {...this.settings}>
+          {this.state.selArch.map((archetype, archetypeIndex) => (
+            <Slide key={archetypeIndex.toString()}>
+              <Content>
+                {/* <SlideHeader>
+                  <h1>{archetype.name}</h1>
+                </SlideHeader> */}
+                <StyledGrid flow="row dense" columns={6} minRowHeight="0">
+                  {Object.keys(this.state.archetypes[archetype].hairstyles).map((key, hairstyleIndex) => (
+                    // <Item key={index.toString()} width={item.w} height={item.h} src={item.src} />
+                    <Item
+                      key={key.toString()}
+                      width={1}
+                      height={1}
+                      onClick={() => this.selHairstyle('likeSwitch', this.state.likeSwitch, hairstyleIndex)}
+                      noAction={this.state.stage === 0}
+                      selected={this.state.selItems.likeSwitch[this.state.likeSwitch.findIndex((el) => el.active)].find((index) => index - 1 === hairstyleIndex)}
+                      color="green"
+                    >
+                      <img src={this.state.archetypes[archetype].hairstyles[`h${(hairstyleIndex + 1)}.jpg`]} alt={key} />
+                      <div className="checkbox"><Icon name="like" size={40} margin="0 2px" color={palette.white} /></div>
+                    </Item>
+                  ))}
+                </StyledGrid>
+              </Content>
+            </Slide>
+            ))}
+        </Slider>}
+        {(this.state.stage === 4) &&
         <Content>
           {this.state.colors.map((item, index) => (
             <ColorItem
@@ -561,7 +706,7 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
           ))}
         </Content>
         }
-        {(this.state.stage === 3) &&
+        {(this.state.stage === 5) &&
           <Content>
             {/* <StyledGrid flow="row dense" columns={75} minRowHeight="0">
               {this.state.archetypes
@@ -603,30 +748,76 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
                   ))
                 ))}
             </StyledGrid> */}
-
+            <Text type="colorTitle">Варианты удачных окрасок</Text>
             <StyledGrid flow="row dense" columns={3} minRowHeight="0">
-              {this.state.selItem
-                .map((archetypeItem, archetypeItemIndex) => (archetypeItem.map((archetypeSubItem, archetypeSubItemIndex) => (
+              {this.state.selItems.likeSwitch[0]
+                .map((hairstyleIndex) => (
                   <Item
-                    key={archetypeSubItemIndex.toString()}
+                    key={hairstyleIndex.toString()}
                     width={1}
                     height={1}
                     autoHeight
                     noAction
                   >
-                    <img src={this.state.archetypes[archetypeItemIndex].hairstyles[`h${(archetypeSubItem + 1)}.jpg`]} alt={`${archetypeItemIndex}-${archetypeSubItem}`} />
-                  </Item>
-                  ))
-                ))}
+                    <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                  </Item>))
+              }
             </StyledGrid>
-            {this.state.archetypes
+            <Text type="colorTitle">Варианты удачных стрижек</Text>
+            <StyledGrid flow="row dense" columns={3} minRowHeight="0">
+              {this.state.selItems.likeSwitch[1]
+                .map((hairstyleIndex) => (
+                  <Item
+                    key={hairstyleIndex.toString()}
+                    width={1}
+                    height={1}
+                    autoHeight
+                    noAction
+                  >
+                    <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                  </Item>))
+              }
+            </StyledGrid>
+            <Text type="colorTitle">Варианты плохих окрасок</Text>
+            <StyledGrid flow="row dense" columns={3} minRowHeight="0">
+              {this.state.selItems.dislikeSwitch[0]
+                .map((hairstyleIndex) => (
+                  <Item
+                    key={hairstyleIndex.toString()}
+                    width={1}
+                    height={1}
+                    autoHeight
+                    noAction
+                  >
+                    <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                  </Item>))
+              }
+            </StyledGrid>
+            <Text type="colorTitle">Варианты плохих стрижек</Text>
+            <StyledGrid flow="row dense" columns={3} minRowHeight="0">
+              {this.state.selItems.dislikeSwitch[1]
+                .map((hairstyleIndex) => (
+                  <Item
+                    key={hairstyleIndex.toString()}
+                    width={1}
+                    height={1}
+                    autoHeight
+                    noAction
+                  >
+                    <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                  </Item>))
+              }
+            </StyledGrid>
+            <Text type="colorTitle">{this.state.archetypes[this.state.selArch[0]].name}</Text>
+            <Text type="p" margin="0 0 10px 0">{this.state.archetypes[this.state.selArch[0]].desc}</Text>
+            {/* {this.state.archetypes
               .filter((archetype, archetypeIndex) => (this.state.selItem[archetypeIndex].length > 0 && this.state.selArch.includes(archetypeIndex)))
               .map((archetype, archetypeIndex) => (
                 <div key={archetypeIndex.toString()}>
                   <Text type="colorTitle">{archetype.name}</Text>
                   <Text type="p" margin="0 0 10px 0">{archetype.desc}</Text>
                 </div>
-              ))}
+              ))} */}
 
             <Form
               // selSources={[].concat.apply([], this.state.selItem // eslint-disable-line
@@ -634,21 +825,25 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
               //     this.state.archetypes[archetypeItemIndex].items[archetypeSubItem].src
               //   )))))}
               selColor={this.state.selColor}
-              selArchetypes={this.state.archetypes
-                .filter((archetype, archetypeIndex) => (this.state.selItem[archetypeIndex].length > 0 && this.state.selArch.includes(archetypeIndex)))}
+              selArchetype={this.state.archetypes[this.state.selArch[0]]}
             />
           </Content>
         }
         <Space size={8} />
-        <Footer noAll={this.state.stage === 3}>
+        <Footer noAll={this.state.stage === 5}>
           <Content flex>
             <div>
               <Text type="subtitle">{this.state.tip}</Text>
               {/* <Text type="p">{this.state.selArch.toString()}</Text> */}
             </div>
             {/* <Text type="subtitle">{this.state.selArch.toString()}</Text> */}
-            <Button noAll={this.state.selArch.length >= 3} onClick={this.selArch}><span>{this.getButtonText()}</span></Button>
-            <Button noAll={this.state.selArch.length < 3} disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>
+            {(this.state.stage === 0) && <Button title="first button" noAll={this.state.selArch.length >= 3} onClick={this.selArch}><span>{this.getButtonText()}</span></Button>}
+            {(this.state.stage === 0) && <Button title="second button" noAll={this.state.selArch.length < 3} disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>}
+            {(this.state.stage === 1) && <Button title="first button" noAll={this.state.selArch.length >= 1} onClick={this.selArch}><span>{this.getButtonText()}</span></Button>}
+            {(this.state.stage === 1) && <Button title="second button" noAll={this.state.selArch.length < 1} disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>}
+            {(this.state.stage === 2) && <Button title="second button" disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>}
+            {(this.state.stage === 3) && <Button title="second button" disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>}
+            {(this.state.stage === 4) && <Button title="second button" disabled={!this.state.allowedNext} onClick={this.nextStage}><span>Далее</span></Button>}
           </Content>
         </Footer>
       </div>

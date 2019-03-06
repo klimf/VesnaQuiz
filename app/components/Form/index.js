@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import { IMaskMixin } from 'react-imask';
 
 import PropTypes from 'prop-types';
 import axios from 'axios';
@@ -65,12 +66,28 @@ const ErrorSpan = styled.span`
   color: red;
 `;
 
+const MaskedStyledInput = IMaskMixin(({ inputRef, ...props }) => (
+  <StyledInput
+    {...props}
+    innerRef={inputRef}  // bind internal input (if you use styled-components V4, use "ref" instead "innerRef")
+  />
+));
+
 class FormComponent extends Component {
 
   state = {
-    value: '',
-    isValid: false,
-    isTouched: false,
+    values: {
+      email: '',
+      phone: '',
+    },
+    isValid: {
+      email: false,
+      phone: false,
+    },
+    isTouched: {
+      email: false,
+      phone: false,
+    },
     isSent: false,
     error: false,
   }
@@ -80,15 +97,36 @@ class FormComponent extends Component {
     return pattern.test(input);
   }
 
-  changeHandler = (event) => {
+  isPhone = (input) => {
+    const pattern = '';
+    return pattern.test(input);
+  }
+
+  changeHandler = (event, name) => {
     const value = event.target.value;
-    this.setState({ value, isTouched: true, isValid: this.isEmail(value) });
+
+    const isTouched = { ...this.state.isTouched };
+    isTouched[name] = true;
+
+    const isValid = { ...this.state.isValid };
+    isValid[name] = (name === 'email') ? this.isEmail(value) : this.isPhone(value);
+
+    const values = { ...this.state.values };
+    values[name] = value;
+
+    this.setState({ values, isTouched, isValid });
   }
 
   restart = () => {
     this.setState({
-      isValid: true,
-      isTouched: true,
+      isValid: {
+        email: true,
+        phone: true,
+      },
+      isTouched: {
+        email: true,
+        phone: true,
+      },
       isSent: false,
       error: false,
     });
@@ -98,12 +136,13 @@ class FormComponent extends Component {
     event.preventDefault();
     if (this.state.isValid) {
       // console.log(this.props.selArchetypes);
-      const newArch = this.props.selArchetypes.forEach((arch) => delete arch.items); // eslint-disable-line
+      const newArch = delete this.props.selArchetype[items]; // eslint-disable-line
       console.log(newArch);
       const data = {
-        archetypes: this.props.selArchetypes,
+        archetype: this.props.selArchetype,
         color: this.props.selColor,
-        mail: this.state.value,
+        mail: this.state.values.email,
+        phone: this.state.values.phone,
       };
       axios.post('http://vesna.klim.me/api.php', data)// https://react-my-burger-ee430.firebaseio.com/vesna.json
       .then((response) => {
@@ -137,10 +176,21 @@ class FormComponent extends Component {
           <StyledInput
             placeholder="mail@mail.ru"
             name="email"
-            value={this.state.value}
-            onChange={this.changeHandler}
+            value={this.state.values.email}
+            onChange={(event) => this.changeHandler(event, 'email')}
           />
-          {!this.state.isValid && this.state.isTouched ? <ErrorSpan>Введите правильную почту</ErrorSpan> : null}
+          {!this.state.isValid.email && this.state.isTouched.email ? <ErrorSpan>Введите правильную почту</ErrorSpan> : null}
+        </label>
+        <label htmlFor>
+          <Text margin="0 0 6px 0">Телефон</Text>
+          <MaskedStyledInput
+            mask="+7 000 000 00 00"
+            placeholder="+7 000 000 00 00"
+            name="phone"
+            value={this.state.values.phone}
+            onChange={(event) => this.changeHandler(event, 'phone')}
+          />
+          {!this.state.isValid.phone && this.state.isTouched.phone ? <ErrorSpan>Введите правильный телефон</ErrorSpan> : null}
         </label>
         <StyledButton><span>Отправить!</span></StyledButton>
       </StyledForm>
@@ -168,7 +218,7 @@ class FormComponent extends Component {
   }
 }
 FormComponent.propTypes = {
-  selArchetypes: PropTypes.any,
+  selArchetype: PropTypes.any,
   selColor: PropTypes.any,
 };
 
