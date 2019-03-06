@@ -464,9 +464,9 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     }
   }
   selFromSelHairstyle = (fieldName, index) => {
-    const selFromSelItems = this.state.selFromSelItems;
-    selFromSelItems[fieldName] = index;
-    this.setState({ selFromSelItems });
+    const newSelFromSelItems = { ...this.state.selFromSelItems };
+    newSelFromSelItems[fieldName] = index;
+    this.setState({ selFromSelItems: newSelFromSelItems });
   }
   // selHairstyle = (archPreIndex, itemIndex) => {
   //   if (this.state.stage === 2) {
@@ -768,19 +768,23 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
             <Text type="colorTitle">Варианты удачных окрасок</Text>
             <StyledGrid flow="row dense" columns={3} minRowHeight="0">
               {this.state.selItems.likeSwitch[0]
-                .map((hairstyleIndex) => (
-                  <Item
+                .map((hairstyleIndex) => {
+                  const hairColor = this.state.selFromSelItems.hairColor;
+                  console.log({ hairColor, hairstyleIndex });
+                  return (<Item
                     key={hairstyleIndex.toString()}
                     width={1}
                     height={1}
                     autoHeight
-                    selected={this.state.selFromSelItems.hairColor === hairstyleIndex}
+                    selected={hairstyleIndex === this.state.selFromSelItems.hairColor}
                     color="green"
                     onClick={() => this.selFromSelHairstyle('hairColor', hairstyleIndex)}
                   >
                     <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
                     <div className="checkbox"><Icon name="like" size={40} margin="0 2px" color={palette.white} /></div>
-                  </Item>))
+                  </Item>)
+;
+                })
               }
             </StyledGrid>
             <Text type="colorTitle">Варианты удачных стрижек</Text>
@@ -792,7 +796,7 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
                     width={1}
                     height={1}
                     autoHeight
-                    selected={this.state.selFromSelItems.hairColor === hairstyleIndex}
+                    selected={this.state.selFromSelItems.hairCut === hairstyleIndex}
                     color="green"
                     onClick={() => this.selFromSelHairstyle('hairCut', hairstyleIndex)}
                   >
