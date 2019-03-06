@@ -250,6 +250,10 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
       dislikeSwitch: [[], []],
       likeSwitch: [[], []],
     },
+    selFromSelItems: {
+      hairColor: 0,
+      hairCut: 0,
+    },
     allowedNext: true,
     // archetypes: [],
     tip: 'Выберите 3 архетипа из 12',
@@ -436,30 +440,33 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     }
   }
   selHairstyle = (menuSwitchName, menuSwitchArray, itemIndex) => {
+    console.log('Hairstyle clicked!');
     const selItems = { ...this.state.selItems };
     const selSwitchIndex = menuSwitchArray.findIndex((el) => el.active);
     if (!selItems[menuSwitchName][selSwitchIndex].find((item) => item === itemIndex + 1)) {
       if (selItems[menuSwitchName][selSwitchIndex].length < 3) {
+        console.log('Hairstyle will be selected!');
         selItems[menuSwitchName][selSwitchIndex].push(itemIndex + 1);
         const allowedNext = selItems[menuSwitchName].every((el) => el.length === 3);
-
-        console.log({ allowedNext, selItems });
         this.setState({ selItems, allowedNext, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
-        setTimeout(() => {
-          if (selItems[menuSwitchName][selSwitchIndex].length === 3) {
-            if (!allowedNext) {
+        if (selItems[menuSwitchName][selSwitchIndex].length === 3) {
+          if (!allowedNext) {
+            console.log('Switcher will be changed!');
+            setTimeout(() => {
               this.changeMenuSwitch(menuSwitchName, menuSwitchArray, menuSwitchArray.filter((el) => !el.active)[0]);
-            }
+            }, 500);
           }
-        }, 500);
+        }
       }
     } else {
       selItems[menuSwitchName][selSwitchIndex] = selItems[menuSwitchName][selSwitchIndex].filter((item) => item !== itemIndex + 1);
-      console.log(selItems);
       this.setState({ selItems, allowedNext: false, tip: `Выбрано ${selItems[menuSwitchName][selSwitchIndex].length}/3` });
     }
-
-    console.log(selItems[menuSwitchName][selSwitchIndex]);
+  }
+  selFromSelHairstyle = (fieldName, index) => {
+    const selFromSelItems = this.state.selFromSelItems;
+    selFromSelItems[fieldName] = index;
+    this.setState({ selFromSelItems });
   }
   // selHairstyle = (archPreIndex, itemIndex) => {
   //   if (this.state.stage === 2) {
@@ -504,6 +511,7 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
     // console.log(this.state);
   }
   changeMenuSwitch = (switchName, switchArray, activeElement) => {
+    console.log('Switched');
     if (!activeElement.active) {
       const newSwitchArray = [...switchArray];
       newSwitchArray.find((elem) => elem.active).active = false;
@@ -766,9 +774,12 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
                     width={1}
                     height={1}
                     autoHeight
-                    noAction
+                    selected={this.state.selFromSelItems.hairColor === hairstyleIndex}
+                    color="green"
+                    onClick={() => this.selFromSelHairstyle('hairColor', hairstyleIndex)}
                   >
                     <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                    <div className="checkbox"><Icon name="like" size={40} margin="0 2px" color={palette.white} /></div>
                   </Item>))
               }
             </StyledGrid>
@@ -781,9 +792,12 @@ export default class HomePage extends React.PureComponent { // eslint-disable-li
                     width={1}
                     height={1}
                     autoHeight
-                    noAction
+                    selected={this.state.selFromSelItems.hairColor === hairstyleIndex}
+                    color="green"
+                    onClick={() => this.selFromSelHairstyle('hairCut', hairstyleIndex)}
                   >
                     <img src={this.state.archetypes[this.state.selArch[0]].hairstyles[`h${(hairstyleIndex)}.jpg`]} alt={`${hairstyleIndex}`} />
+                    <div className="checkbox"><Icon name="like" size={40} margin="0 2px" color={palette.white} /></div>
                   </Item>))
               }
             </StyledGrid>
