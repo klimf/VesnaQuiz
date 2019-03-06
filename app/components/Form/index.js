@@ -82,7 +82,7 @@ class FormComponent extends Component {
     },
     isValid: {
       email: false,
-      phone: false,
+      phone: true,
     },
     isTouched: {
       email: false,
@@ -97,10 +97,10 @@ class FormComponent extends Component {
     return pattern.test(input);
   }
 
-  isPhone = (input) => {
-    const pattern = '';
-    return pattern.test(input);
-  }
+  // isPhone = (input) => {
+  //   const pattern = '';
+  //   return pattern.test(input);
+  // }
 
   changeHandler = (event, name) => {
     const value = event.target.value;
@@ -109,7 +109,7 @@ class FormComponent extends Component {
     isTouched[name] = true;
 
     const isValid = { ...this.state.isValid };
-    isValid[name] = (name === 'email') ? this.isEmail(value) : this.isPhone(value);
+    isValid[name] = (name === 'email') ? this.isEmail(value) : true;
 
     const values = { ...this.state.values };
     values[name] = value;
